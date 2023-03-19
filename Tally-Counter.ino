@@ -1,3 +1,16 @@
+/**************************************************************
+ Code written by gigahidjrikaaa for course project.
+ Based on the examples written by Limor Fried/Ladyada.
+
+ This code is used for showing a tally counter (counter in general)
+ using two push buttons with an SSD1306 128x64 OLED.
+
+ Features:
+ - 2 buttons which increment/decrement the counter when pressed
+   individually, reset the counter when pressed together.
+ - OLED displays the counter.
+***************************************************************/
+
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -7,29 +20,10 @@
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
 #define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
-#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
+#define SCREEN_ADDRESS 0x3C // Obtained from I2C Scanner. Look for the program in Github.
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-#define LOGO_HEIGHT   16
-#define LOGO_WIDTH    16
-// static const unsigned char PROGMEM logo_bmp[] =
-// { 0b00000000, 0b11000000,
-//   0b00000001, 0b11000000,
-//   0b00000001, 0b11000000,
-//   0b00000011, 0b11100000,
-//   0b11110011, 0b11100000,
-//   0b11111110, 0b11111000,
-//   0b01111110, 0b11111111,
-//   0b00110011, 0b10011111,
-//   0b00011111, 0b11111100,
-//   0b00001101, 0b01110000,
-//   0b00011011, 0b10100000,
-//   0b00111111, 0b11100000,
-//   0b00111111, 0b11110000,
-//   0b01111100, 0b11110000,
-//   0b01110000, 0b01110000,
-//   0b00000000, 0b00110000 };
-
+// Button Class to manage all things related to buttons.
 class BtnClass{
   public:
     const int debounceThres = 50;
@@ -45,28 +39,34 @@ class BtnClass{
 
     BtnClass(int pin, int number, int* count)
     {
-      buttonPin = pin;
-      modifier = number;
-      counter = count;
+      buttonPin = pin; // assigns the button pin
+      modifier = number; // what value is added to the counter
+      counter = count; // counter variable address so this class can change the counter variable.
     }
 
+    // Member function to add a value to the counter.
     void addCounter()
     {
       *counter += modifier;
-      if(*counter < 0)
+      if(*counter < 0) // limits the counter so it cannot be a negative number.
         *counter = 0;
     }
 
+    // Member function to always check the button.
+    // Must be called at least once in the loop() function.
     void buttonCheck()
     {
+      // read the current state of the button
       currentState = digitalRead(buttonPin);
 
+      // Button debouncing
+      // For more information on debouncing, check ESP32.io
       if(millis() - lastDebounceTime > debounceThres)
       {
         if(lastSteadyState == HIGH && currentState == LOW)
         {
           isPressed = true;
-          addCounter();
+          addCounter(); // Only adds the counter when button is pressed (after the debouncing)
         }
         else if(lastSteadyState == LOW && currentState == HIGH)
         {
@@ -84,6 +84,7 @@ class BtnClass{
     }  
 };
 
+// Function to make the OLED displays content centered with x and y offset
 void displayCenter(String text, int X, int Y) {
   int16_t x1;
   int16_t y1;
@@ -96,33 +97,34 @@ void displayCenter(String text, int X, int Y) {
   display.println(text);
 }
 
+// Function to show the counter to the OLED
 void tallyCounter(int counter)
 {
   display.clearDisplay();
 
-  display.setTextSize(2);
-  display.setTextColor(SSD1306_WHITE);
-  display.setCursor(22, 0);
-  displayCenter("Counter", 0, -24);
+  display.setTextColor(SSD1306_WHITE); // Set the Color of text
+  display.setTextSize(2); // Set the text size
+  displayCenter("Counter", 0, -24); // Display the text "Counter"
+  display.setTextSize(4); 
+  displayCenter(String(counter), 0, 8); // Display the counter value
 
-  display.setTextSize(4);
-  displayCenter(String(counter), 0, 8);
   display.display();
 }
 
+// Function to show a RESET display to the OLED
 void tallyReset()
 {
   display.clearDisplay();
   display.setTextSize(4);
   displayCenter("RESET", 0, 0);
   display.display();
-  delay(2000);
+  delay(2000); // delay to not receive any input from buttons
 }
 
 const int pinUpBtn = 14;
 const int pinDownBtn = 12;
 
-int counter = 1000;
+int counter = 0;
 unsigned long int resetTime = 0;
 bool secondLoop = 0;
 
@@ -150,10 +152,6 @@ void loop() {
   upButton.buttonCheck();
   downButton.buttonCheck();
 
-  // for debugging only
-  // Serial.printf("UpButtonState:%d,DownButtonState:%d,UpIsPressed:%d,DownIsPressed:%d\n", upButton.currentState, downButton.currentState, upButton.isPressed, downButton.isPressed);
-  // Serial.printf("millis():%d,resettime():%d\n", millis(), resetTime);
-
   if(upButton.isPressed && downButton.isPressed)
   {
     if(millis() - resetTime > 2000)
@@ -171,5 +169,8 @@ void loop() {
   {
     secondLoop = false;
   }
-  
+
+  // For debugging the buttons only
+  // Serial.printf("UpButtonState:%d,DownButtonState:%d,UpIsPressed:%d,DownIsPressed:%d\n", upButton.currentState, downButton.currentState, upButton.isPressed, downButton.isPressed);
+  // Serial.printf("millis():%d,resettime():%d\n", millis(), resetTime);
 }
