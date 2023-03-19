@@ -123,8 +123,8 @@ void tallyReset()
 
 const int pinUpBtn = 14;
 const int pinDownBtn = 12;
-
 int counter = 0;
+
 unsigned long int resetTime = 0;
 bool secondLoop = 0;
 
@@ -132,17 +132,20 @@ BtnClass upButton(pinUpBtn, 1, &counter);
 BtnClass downButton(pinDownBtn, -1, &counter);
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
+  // Checks if the OLED is connected or not.
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
     for(;;);
   }
 
+  // Shows the Adafruit splash screen
   display.display();
   delay(1000);
   display.clearDisplay();
 
+  // Use internal pullups for buttons
   pinMode(pinUpBtn, INPUT_PULLUP);
   pinMode(pinDownBtn, INPUT_PULLUP);
 }
