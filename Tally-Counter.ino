@@ -26,7 +26,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 // Button Class to manage all things related to buttons.
 class BtnClass{
   public:
-    const int debounceThres = 50;
+    const int debounceThres = 50; // Debouncing threshold in miliseconds
     bool lastSteadyState = LOW;
     bool lastBounceState = LOW;
     int buttonPin;
@@ -41,7 +41,7 @@ class BtnClass{
     {
       buttonPin = pin; // assigns the button pin
       modifier = number; // what value is added to the counter
-      counter = count; // counter variable address so this class can change the counter variable.
+      counter = count; // store counter variable address so this class can change the counter variable.
     }
 
     // Member function to add a value to the counter.
@@ -84,7 +84,7 @@ class BtnClass{
     }  
 };
 
-// Function to make the OLED displays content centered with x and y offset
+// Function to make the OLED displays content centered with X and Y offset
 void displayCenter(String text, int X, int Y) {
   int16_t x1;
   int16_t y1;
@@ -126,8 +126,10 @@ const int pinDownBtn = 12;
 int counter = 0;
 
 unsigned long int resetTime = 0;
-bool secondLoop = 0;
+bool secondLoop = 0; // variable for checking a second loop
 
+// Declare 2 button objects
+// 1 for up, 1 for down.
 BtnClass upButton(pinUpBtn, 1, &counter);
 BtnClass downButton(pinDownBtn, -1, &counter);
 
@@ -151,18 +153,21 @@ void setup() {
 }
 
 void loop() {
-  tallyCounter(counter);
-  upButton.buttonCheck();
+  tallyCounter(counter); // Call the function for display
+  upButton.buttonCheck(); // Call the button check function of both buttons
   downButton.buttonCheck();
 
+  // Condition if both buttons are pressed
   if(upButton.isPressed && downButton.isPressed)
   {
+    // Timing for 2 seconds
     if(millis() - resetTime > 2000)
     {
+      // if already passed the 2 second mark
       if(secondLoop)
       {
-        counter = 0;
-        tallyReset();
+        counter = 0; // Reset the counter
+        tallyReset(); // Display RESET
       }
       secondLoop = true;
       resetTime = millis();
@@ -170,7 +175,7 @@ void loop() {
   }
   else
   {
-    secondLoop = false;
+    secondLoop = false; // else, reset the secondloop
   }
 
   // For debugging the buttons only
