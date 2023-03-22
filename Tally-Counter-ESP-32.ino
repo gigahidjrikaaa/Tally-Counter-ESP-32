@@ -1,5 +1,5 @@
 /**************************************************************
- Code written by gigahidjrikaaa for course project.
+ Code written by Giga Hidjrika Aura Adkhy for course project.
  Based on the examples written by Limor Fried/Ladyada.
 
  This code is used for showing a tally counter (counter in general)
@@ -121,6 +121,15 @@ void tallyReset()
   delay(2000); // delay to not receive any input from buttons
 }
 
+void splashScreen()
+{
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(3);
+  displayCenter("TALLY\nCOUNTER", 0, 0);
+  display.display();
+}
+
 const int pinUpBtn = 14;
 const int pinDownBtn = 12;
 int counter = 0;
@@ -142,9 +151,9 @@ void setup() {
     for(;;);
   }
 
-  // Shows the Adafruit splash screen
-  display.display();
-  delay(1000);
+  // Shows the splash screen
+  splashScreen();
+  delay(2000);
   display.clearDisplay();
 
   // Use internal pullups for buttons
